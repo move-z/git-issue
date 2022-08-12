@@ -2,11 +2,20 @@
 name = "git-jira"
 description = "Git interface to Jira"
 version = "0.1.0"
+
 readme = "README.md"
 repository = "https://github.com/move-z/git-jira"
 authors = ["Rodolfo Boer"]
+license = "GPL-3.0-or-later"
+
+keywords = ["git"]
+categories = ["command-line-utilities", "development-tools"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+[profile.release]
+lto = true
+strip = true

@@ -2,9 +2,9 @@ use anyhow::{bail, Result};
 use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::Deserialize;
 
-use crate::utils::{get_config_scoped, ask_password};
+use crate::utils::{ask_password, get_config_scoped};
 
-const GITHUB_URL: &'static str = "https://api.github.com";
+const GITHUB_URL: &str = "https://api.github.com";
 
 /// Fetch the issue from the server
 pub fn get_issue_title(id: &str) -> Result<String> {
@@ -50,13 +50,14 @@ pub fn get_issue_title(id: &str) -> Result<String> {
     Ok(issue.title)
 }
 
-#[derive(Deserialize)]
-struct Failure {
-    message: String,
-}
-
+/// The issue data
 #[derive(Deserialize)]
 struct Issue {
     title: String,
 }
 
+/// The failure data
+#[derive(Deserialize)]
+struct Failure {
+    message: String,
+}

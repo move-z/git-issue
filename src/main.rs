@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use anyhow::{bail, Result};
 use clap::Parser;
 

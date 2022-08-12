@@ -43,7 +43,6 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
 
 /// Switch to new branch
 pub fn create_branch(branch: &str) -> Result<()> {
-    let branch = branch.replace(" ", "_");
     let output = git(&["checkout", "-b", &branch])?;
     if !output.status.success() {
         bail!("{}", String::from_utf8_lossy(&output.stderr));

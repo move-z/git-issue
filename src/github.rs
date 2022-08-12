@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
-use reqwest::header::ACCEPT;
+use reqwest::header::{ACCEPT, USER_AGENT};
+use serde::Deserialize;
 
 use crate::utils::{get_config_scoped, ask_password};
 
@@ -9,27 +10,53 @@ const GITHUB_URL: &'static str = "https://api.github.com";
 pub fn get_issue_title(id: &str) -> Result<String> {
     let user = get_config_scoped("user", "github")?;
     let repo = get_config_scoped("repo", "github")?;
+    let public = if let Ok(public) = get_config_scoped("public", "github") {
+        match public.as_str() {
+            "true" => true,
+            "false" => false,
+            _ => bail!("option public must be true or false"),
+        }
+    } else {
+        false
+    };
 
     println!("Fetching info on github issue {id}");
-
-    let password = ask_password(&user)?;
 
     let url = format!("{GITHUB_URL}/repos/{user}/{repo}/issues/{id}");
     let response = reqwest::blocking::Client::new()
         .get(url)
         .header(ACCEPT, "application/vnd.github+json")
-        .basic_auth(user, Some(password))
-        .send()?;
+        .header(USER_AGENT, "git-issue");
+    let response = if !public {
+        let password = ask_password(&user)?;
+        response.basic_auth(user, Some(password))
+    } else {
+        response
+    };
+    let response = response.send()?;
 
-    dbg!(response);
-    // let status = response.status();
-    // if !status.is_success() {
-    //     if let Ok(f) = response.json::<Failure>() {
-    //         let errors = f.errorMessages.join("\n");
-    //         bail!("received errors from jira server:\n{errors}");
-    //     } else {
-    //         bail!("received error code from jira server:\n{status}");
-    //     }
-    // }
-    todo!()
+    let status = response.status();
+    if !status.is_success() {
+        if let Ok(f) = response.json::<Failure>() {
+            let message = f.message;
+            bail!("received error from github server:\n{message}");
+        } else {
+            bail!("received error code from jira server:\n{status}");
+        }
+    }
+
+    let issue = response.json::<Issue>()?;
+
+    Ok(issue.title)
 }
+
+#[derive(Deserialize)]
+struct Failure {
+    message: String,
+}
+
+#[derive(Deserialize)]
+struct Issue {
+    title: String,
+}
+

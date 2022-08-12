@@ -4,20 +4,14 @@ use crate::git;
 use anyhow::{bail, Result};
 use serde::Deserialize;
 
-/// Handle the request for this jira id
-pub fn handle(id: &str) -> Result<()> {
+/// Fetch the issue from the server
+pub fn get_issue_title(id: &str) -> Result<String> {
     let host = git::get_config("jira.host")?;
     let user = git::get_config("jira.user")?;
 
-    let _issue = fetch_jira_issue(&host, &user, id)?;
-    todo!()
-}
-
-/// Cetch the issue from the server
-fn fetch_jira_issue(host: &str, user: &str, id: &str) -> Result<Issue> {
     println!("Fetching info on jira issue {id}");
 
-    let password = ask_password(user, host)?;
+    let password = ask_password(&user, &host)?;
 
     let url = format!("{host}/rest/api/latest/issue/{id}");
     let response = reqwest::blocking::Client::new()

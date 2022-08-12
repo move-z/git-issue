@@ -3,6 +3,16 @@ use std::process::Command;
 
 /// Get config option from git
 pub fn get_config(name: &str) -> Result<String> {
+    get_config_internal(name, None)
+}
+
+/// Get config option from git, with scope)
+pub fn get_config_scoped(name: &str, scope: &str) -> Result<String> {
+    get_config_internal(name, Some(scope))
+}
+
+/// Get config option from git (implementation)
+fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
     let full_name = format!("issue.{name}");
 
     let output = Command::new("git")
@@ -11,7 +21,7 @@ pub fn get_config(name: &str) -> Result<String> {
         .with_context(|| "cannot launch git config")?;
 
     if !output.status.success() {
-        bail!("Cannot get property {full_name} from git");
+        bail!("cannot get property {full_name} from git");
     }
 
     let property = String::from_utf8(output.stdout)?.trim().to_string();

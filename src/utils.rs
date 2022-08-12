@@ -1,4 +1,3 @@
-use std::io::{self, Write};
 use std::process::Command;
 
 use anyhow::{bail, Context, Result};
@@ -37,11 +36,6 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
 
 /// Ask for password
 pub fn ask_password(prompt: &str) -> Result<String> {
-    print!("Enter password for {prompt}: ");
-    io::stdout().flush()?;
-
-    let mut password = String::new();
-    io::stdin().read_line(&mut password)?;
-
-    Ok(password)
+    let p = rpassword::prompt_password(format!("Enter password for {prompt}: "))?;
+    Ok(p)
 }

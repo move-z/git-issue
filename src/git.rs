@@ -14,7 +14,7 @@ pub fn get_config(name: &str) -> Result<String> {
         bail!("Cannot get property {full_name} from git");
     }
 
-    let property = String::from_utf8(output.stdout)?;
+    let property = String::from_utf8(output.stdout)?.trim().to_string();
 
     Ok(property)
 }

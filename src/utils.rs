@@ -1,5 +1,7 @@
-use anyhow::{bail, Context, Result};
+use std::io::{self, Write};
 use std::process::Command;
+
+use anyhow::{bail, Context, Result};
 
 /// Get config option from git
 pub fn get_config(name: &str) -> Result<String> {
@@ -13,7 +15,11 @@ pub fn get_config_scoped(name: &str, scope: &str) -> Result<String> {
 
 /// Get config option from git (implementation)
 fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
-    let full_name = format!("issue.{name}");
+    let full_name = if let Some(scope) = scope {
+        format!("issue.{scope}.{name}")
+    } else {
+        format!("issue.{name}")
+    };
 
     let output = Command::new("git")
         .args(["config", &full_name])
@@ -27,4 +33,15 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
     let property = String::from_utf8(output.stdout)?.trim().to_string();
 
     Ok(property)
+}
+
+/// Ask for password
+pub fn ask_password(prompt: &str) -> Result<String> {
+    print!("Enter password for {prompt}: ");
+    io::stdout().flush()?;
+
+    let mut password = String::new();
+    io::stdin().read_line(&mut password)?;
+
+    Ok(password)
 }

@@ -1,17 +1,16 @@
-use std::io::{self, Write};
-
-use crate::git;
 use anyhow::{bail, Result};
 use serde::Deserialize;
 
+use crate::utils::{ask_password, get_config_scoped};
+
 /// Fetch the issue from the server
 pub fn get_issue_title(id: &str) -> Result<String> {
-    let host = git::get_config("jira.host")?;
-    let user = git::get_config("jira.user")?;
+    let host = get_config_scoped("host", "jira")?;
+    let user = get_config_scoped("user", "jira")?;
 
     println!("Fetching info on jira issue {id}");
 
-    let password = ask_password(&user, &host)?;
+    let password = ask_password(&format!("user {user} on host {host}"))?;
 
     let url = format!("{host}/rest/api/latest/issue/{id}");
     let response = reqwest::blocking::Client::new()
@@ -44,15 +43,3 @@ struct Issue {}
 struct Failure {
     errorMessages: Vec<String>,
 }
-
-/// Ask for password
-fn ask_password(user: &str, host: &str) -> Result<String> {
-    print!("Enter password for user {user} on server {host}: ");
-    io::stdout().flush()?;
-
-    let mut password = String::new();
-    io::stdin().read_line(&mut password)?;
-
-    Ok(password)
-}
-

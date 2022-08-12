@@ -1,15 +1,17 @@
 use anyhow::{bail, Result};
 use clap::Parser;
 
-use arguments::Args;
-use utils::get_config;
+use crate::utils::{check_is_git, get_config};
 
-mod arguments;
 mod github;
 mod jira;
 mod utils;
 
 fn main() -> Result<()> {
+    if !check_is_git()? {
+        bail!("this is not a git repository");
+    }
+
     let args = Args::parse();
     let id = args.id;
 
@@ -24,4 +26,17 @@ fn main() -> Result<()> {
     dbg!(issue);
 
     Ok(())
+}
+
+/// Command line arguments
+#[derive(Parser)]
+#[clap(author, version, about)]
+pub struct Args {
+    /// The id of the issue
+    #[clap(value_parser)]
+    pub id: String,
+
+    /// Create a branch from the issue title
+    #[clap(short, long, action)]
+    pub branch: bool,
 }

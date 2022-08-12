@@ -34,7 +34,6 @@ pub fn get_issue_title(id: &str) -> Result<String> {
 
 /// The issue data
 #[derive(Deserialize, Debug)]
-#[allow(non_snake_case)]
 struct Issue {}
 
 /// The error data

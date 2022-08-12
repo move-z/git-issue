@@ -2,6 +2,12 @@ use std::process::Command;
 
 use anyhow::{bail, Context, Result};
 
+/// Check that we are in a git repository
+pub fn check_is_git() -> Result<bool> {
+    let r = Command::new("git").args(["status"]).output()?.status.success();
+    Ok(r)
+}
+
 /// Get config option from git
 pub fn get_config(name: &str) -> Result<String> {
     get_config_internal(name, None)

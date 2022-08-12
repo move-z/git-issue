@@ -1,15 +1,14 @@
-use std::process::Command;
+use std::{
+    fs::OpenOptions,
+    io::Write,
+    process::{Command, Output},
+};
 
 use anyhow::{bail, Context, Result};
 
 /// Check that we are in a git repository
 pub fn check_is_git() -> Result<bool> {
-    let r = Command::new("git")
-        .args(["status"])
-        .output()
-        .with_context(|| "cannot launch git status")?
-        .status
-        .success();
+    let r = git(&["status"])?.status.success();
     Ok(r)
 }
 
@@ -31,10 +30,7 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
         format!("issue.{name}")
     };
 
-    let output = Command::new("git")
-        .args(["config", &full_name])
-        .output()
-        .with_context(|| "cannot launch git config")?;
+    let output = git(&["config", &full_name])?;
 
     if !output.status.success() {
         bail!("cannot get property {full_name} from git");
@@ -45,15 +41,38 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
     Ok(property)
 }
 
-/// switch to new branch
+/// Switch to new branch
 pub fn create_branch(branch: &str) -> Result<()> {
     let branch = branch.replace(" ", "_");
-    let output = Command::new("git")
-        .args(["checkout", "-b", &branch])
-        .output()
-        .with_context(|| "cannot launch git checkout")?;
+    let output = git(&["checkout", "-b", &branch])?;
     if !output.status.success() {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
     }
     Ok(())
+}
+
+/// Set the commit template
+pub fn set_template(comment: &str) -> Result<()> {
+    let mut f = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(".git/issue.template")?;
+    write!(&mut f, "{comment}")?;
+
+    let output = git(&["config", "commit.template", ".git/issue.template"])?;
+    if !output.status.success() {
+        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    }
+
+    Ok(())
+}
+
+/// Call git
+fn git(params: &[&str]) -> Result<Output> {
+    let r = Command::new("git")
+        .args(params)
+        .output()
+        .with_context(|| format!("cannot launch git {}", params[0]))?;
+    Ok(r)
 }

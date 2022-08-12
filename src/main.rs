@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use clap::Parser;
 
-use crate::git::{check_is_git, create_branch, get_config};
+use crate::git::{check_is_git, create_branch, get_config, set_template};
 
 mod git;
 mod github;
@@ -14,10 +14,10 @@ fn main() -> Result<()> {
     }
 
     let args = Args::parse();
-    let id = args.id;
 
     let kind = get_config("personality")?;
 
+    let id = args.id;
     let title = match kind.as_str() {
         "github" => github::get_issue_title(&id)?,
         "jira" => jira::get_issue_title(&id)?,
@@ -29,6 +29,8 @@ fn main() -> Result<()> {
     if args.branch {
         create_branch(&comment)?;
     }
+
+    set_template(&comment)?;
 
     Ok(())
 }

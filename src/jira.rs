@@ -1,7 +1,8 @@
 use anyhow::{bail, Result};
 use serde::Deserialize;
 
-use crate::utils::{ask_password, get_config_scoped};
+use crate::git::get_config_scoped;
+use crate::utils::ask_password;
 
 /// Fetch the issue from the server
 pub fn get_issue_title(id: &str) -> Result<String> {

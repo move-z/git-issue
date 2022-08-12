@@ -2,7 +2,8 @@ use anyhow::{bail, Result};
 use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::Deserialize;
 
-use crate::utils::{ask_password, get_config_scoped};
+use crate::git::get_config_scoped;
+use crate::utils::ask_password;
 
 const GITHUB_URL: &str = "https://api.github.com";
 

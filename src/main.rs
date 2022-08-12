@@ -1,8 +1,9 @@
 use anyhow::{bail, Result};
 use clap::Parser;
 
-use crate::utils::{check_is_git, get_config};
+use crate::git::{check_is_git, create_branch, get_config};
 
+mod git;
 mod github;
 mod jira;
 mod utils;
@@ -17,13 +18,17 @@ fn main() -> Result<()> {
 
     let kind = get_config("personality")?;
 
-    let issue = match kind.as_str() {
+    let title = match kind.as_str() {
         "github" => github::get_issue_title(&id)?,
         "jira" => jira::get_issue_title(&id)?,
         _ => bail!("{kind} is not a valid value for personality\nvalid values: github, jira"),
     };
 
-    dbg!(issue);
+    let comment = format!("{id} - {title}");
+
+    if args.branch {
+        create_branch(&comment)?;
+    }
 
     Ok(())
 }

@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use anyhow::{bail, Result};
 use clap::Parser;
 
@@ -24,10 +26,11 @@ fn main() -> Result<()> {
         _ => bail!("{kind} is not a valid value for personality\nvalid values: github, jira"),
     };
 
+    let branch = format!("{id}-{}", title.replace(" ", "-"));
     let comment = format!("{id} - {title}");
 
     if args.branch {
-        create_branch(&comment)?;
+        create_branch(&branch)?;
     }
 
     set_template(&comment)?;

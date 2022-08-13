@@ -1,5 +1,7 @@
+const TEMPLATE_FILE: &str = ".git/issue.template";
+
 use std::{
-    fs::OpenOptions,
+    fs::{OpenOptions, remove_file},
     io::Write,
     process::{Command, Output},
 };
@@ -43,8 +45,16 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
 
 /// Switch to new branch
 pub fn create_branch(branch: &str) -> Result<()> {
-    let branch = branch.replace(" ", "_");
-    let output = git(&["checkout", "-b", &branch])?;
+    let output = git(&["checkout", "-b", branch])?;
+    if !output.status.success() {
+        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    }
+    Ok(())
+}
+
+/// Go back to master
+pub fn clear_branch() -> Result<()> {
+    let output = git(&["checkout", "master"])?;
     if !output.status.success() {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
     }
@@ -57,10 +67,22 @@ pub fn set_template(comment: &str) -> Result<()> {
         .create(true)
         .write(true)
         .truncate(true)
-        .open(".git/issue.template")?;
+        .open(TEMPLATE_FILE)?;
     write!(&mut f, "{comment}")?;
 
     let output = git(&["config", "commit.template", ".git/issue.template"])?;
+    if !output.status.success() {
+        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    }
+
+    Ok(())
+}
+
+/// Clear the commit template
+pub fn clear_template() -> Result<()> {
+    remove_file(TEMPLATE_FILE)?;
+
+    let output = git(&["config", "--unset", "commit.template"])?;
     if !output.status.success() {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
     }

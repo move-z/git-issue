@@ -1,7 +1,7 @@
 const TEMPLATE_FILE: &str = ".git/issue.template";
 
 use std::{
-    fs::{OpenOptions, remove_file},
+    fs::{remove_file, OpenOptions},
     io::Write,
     process::{Command, Output},
 };
@@ -43,18 +43,39 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
     Ok(property)
 }
 
-/// Switch to new branch
-pub fn create_branch(branch: &str) -> Result<()> {
-    let output = git(&["checkout", "-b", branch])?;
+/// Switch to branch, creating it if necessary
+pub fn create_switch_branch(branch: &str) -> Result<()> {
+    if !branch_exists(branch)? {
+        new_branch(branch)?;
+    }
+    checkout(branch)
+}
+
+/// Create new branch
+fn new_branch(branch: &str) -> Result<()> {
+    let output = git(&["branch", branch])?;
     if !output.status.success() {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
     }
     Ok(())
 }
 
+/// Check if a branch exists
+fn branch_exists(branch: &str) -> Result<bool> {
+    let r = git(&["show-ref", &format!("refs/heads/{branch}")])?
+        .status
+        .success();
+    Ok(r)
+}
+
 /// Go back to master
 pub fn clear_branch() -> Result<()> {
-    let output = git(&["checkout", "master"])?;
+    checkout("master")
+}
+
+/// Switch branch
+fn checkout(branch: &str) -> Result<()> {
+    let output = git(&["checkout", branch])?;
     if !output.status.success() {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
     }

@@ -1,8 +1,7 @@
 use anyhow::{bail, Result};
 use clap::{ArgGroup, Parser};
-use git::{clear_branch, clear_template};
 
-use crate::git::{check_is_git, create_branch, get_config, set_template};
+use crate::git::*;
 
 mod git;
 mod github;
@@ -39,7 +38,7 @@ fn setup(kind: &str, id: &str, do_branch: bool) -> Result<()> {
     let comment = format!("{id} - {title}");
 
     if do_branch {
-        create_branch(&branch)?;
+        create_switch_branch(&branch)?;
     }
 
     set_template(&comment)?;

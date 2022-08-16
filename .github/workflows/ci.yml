@@ -2,8 +2,7 @@ name: CI
 
 on:
   push:
-    branches:
-      branches-ignore: [ "release/**" ]
+    branches-ignore: [ "release/**" ]
 
 env:
   CARGO_TERM_COLOR: always

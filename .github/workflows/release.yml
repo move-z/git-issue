@@ -8,12 +8,40 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-for-linux:
+  set-version-file:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Calculate version
+        run: |
+          echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
+
+      - name: Set version
+        run: sed 's/^version = ".*"/version = "{{ env.version }}"/' Cargo.toml
+
+      - name: Save Cargo.toml
+        uses: actions/upload-artifact@v3
+        with:
+          name: Cargo.toml
+          path: Cargo.toml
+
+  build-for-linux:
+    needs:
+      - set-version-file
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get updated Cargo.toml
+        uses: actions/download-artifact@v3
+        with:
+          name: Cargo.toml
 
       - name: Build
         run: cargo build --release
@@ -25,19 +53,22 @@ jobs:
           path: target/release/git-issue
 
   build-for-macos:
+    needs:
+      - set-version-file
+
     runs-on: macos-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Get updated Cargo.toml
+        uses: actions/download-artifact@v3
+        with:
+          name: Cargo.toml
+
       - name: Build
         run: cargo build --release
-
-      - name: uses
-        run: uname -a
-      - name: L
-        run: ls target
 
       - name: Save artifact
         uses: actions/upload-artifact@v3
@@ -46,11 +77,19 @@ jobs:
           path: target/release/git-issue
 
   build-for-windows:
+    needs:
+      - set-version-file
+
     runs-on: windows-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Get updated Cargo.toml
+        uses: actions/download-artifact@v3
+        with:
+          name: Cargo.toml
 
       - name: Build
         run: cargo build --release
@@ -99,7 +138,7 @@ jobs:
 
       - name: Get version
         run: |
-          echo $(echo -n version= ; grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml) >> $GITHUB_ENV
+          echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
       - run: find . -type f
 
       - name: Archive release file

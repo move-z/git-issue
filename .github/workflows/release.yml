@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Build
         run: cargo build
@@ -23,6 +24,7 @@ jobs:
       - name: Archive release file
         uses: softprops/action-gh-release@v1
         with:
+          tag: 0.0.1
           files: target/release/git-issue
           generate_release_notes: true
 

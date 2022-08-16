@@ -10,11 +10,11 @@ mod jira;
 mod utils;
 
 fn main() -> Result<()> {
+    let args = Args::parse();
+
     if !check_is_git()? {
         bail!("this is not a git repository");
     }
-
-    let args = Args::parse();
 
     let kind = get_config("personality")?;
 

@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "git-issue"
-version = "0.1.0"
+version = "9999.0.0"
 dependencies = [
  "anyhow",
  "clap",

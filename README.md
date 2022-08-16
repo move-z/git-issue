@@ -1,3 +1,5 @@
+![ci status](https://github.com/move-z/git-issue/actions/workflows/ci.yml/badge.svg?branch=master)
+
 # Git Issue
 
 Git command to manage branch names and commit messages

@@ -16,7 +16,7 @@ Git Issue uses the following configuration parameters, all set with `git
 config`, either globally or per project.
 
 | Name                | Description                                                                                 |
-|=====================|=============================================================================================|
+|---------------------|---------------------------------------------------------------------------------------------|
 | issue.personality   | Either `github` or `jira`                                                                   |
 | issue.defaultbranch | (Optional) The branch to switch to on clear, if `--to`  is not present. Default is `master` |
 | issue.github.repo   | (Mandatory for github) Repository for github                                                |

@@ -18,34 +18,55 @@ jobs:
       - name: Build
         run: cargo build --release
 
-      - name: Test
-        run: cargo test
+      - name: Save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-build
+          path: target/release/git-issue
+
+  build-for-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: cargo build
+
+      - name: Save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: target/release/git-issue
+
+  create-release:
+    needs:
+      - build-for-linux
+      - build-for-windows
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-build
+          path: git-issue-amd64
+
+      - name: Get windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-build
+          path: git-issue-windows
 
       - name: Get version
         run: |
-          echo $(echo -n version= ; grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml) >> $GITHUB_ENV
+          echo ::set-output name=version::$(grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml)
 
       - name: Archive release file
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.version }}
-          files: target/release/git-issue
+          files: git-issue-*
           generate_release_notes: true
 
-  # build-for-windows:
-  #   runs-on: windows-latest
-
-  #   steps:
-  #     - uses: actions/checkout@v3
-
-  #     - name: Build
-  #       run: cargo build
-
-  #     - name: Test
-  #       run: cargo test
-
-  #     - name: Archive release file
-  #       uses: actions/action-gh-release@v1
-  #       with:
-  #         files: target/release/git-issue
-  #         generate_release_notes: true

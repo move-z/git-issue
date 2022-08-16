@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     let kind = get_config("personality")?;
 
     if args.clear {
-        clear()?;
+        clear(args.to)?;
     } else if let Some(id) = args.id {
         setup(&kind, &id, args.branch)?;
     }
@@ -58,8 +58,10 @@ fn setup(kind: &str, id: &str, do_branch: bool) -> Result<()> {
 }
 
 /// Cleanup
-fn clear() -> Result<()> {
-    clear_branch()?;
+fn clear(destination_branch: Option<String>) -> Result<()> {
+    let default_branch = get_config("defaultbranch");
+    let default_branch = default_branch.as_deref().unwrap_or("master");
+    checkout(destination_branch.as_deref().unwrap_or(default_branch))?;
     clear_template()?;
     Ok(())
 }
@@ -72,16 +74,26 @@ fn clear() -> Result<()> {
                 .required(true)
                 .args(&["id", "clear"]),
         ))]
+#[clap(group(
+            ArgGroup::new("require_clear")
+                .requires("clear")
+                .conflicts_with("id")
+                .args(&["to"]),
+        ))]
 pub struct Args {
     /// The id of the issue
     #[clap(value_parser)]
     pub id: Option<String>,
 
+    /// Create a branch from the issue title
+    #[clap(short, long, action)]
+    pub branch: bool,
+
     /// Clear comment template and eventually go back with the branch
     #[clap(short, long, action)]
     pub clear: bool,
 
-    /// Create a branch from the issue title
-    #[clap(short, long, action)]
-    pub branch: bool,
+    /// Specific branch to change to on clear
+    #[clap(long, action)]
+    pub to: Option<String>,
 }

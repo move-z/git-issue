@@ -17,10 +17,8 @@ jobs:
 
       - name: Calculate version
         run: |
-          env
-          echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%%
-          echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
-          # echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
+          echo version=0.0.$GITHUB_REF_NAME | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
+          # echo version=$GITHUB_REF_NAME | sed s%release/%% >> $GITHUB_ENV
 
       - name: Set version
         run: sed -i 's/^version = ".*"/version = "${{ env.version }}"/' Cargo.toml
@@ -138,8 +136,8 @@ jobs:
 
       - name: Get version
         run: |
-          # echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
-          echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
+          # echo version=$GITHUB_REF_NAME | sed s%release/%% >> $GITHUB_ENV
+          echo version=0.0.$GITHUB_REF_NAME | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
 
       - name: Archive release file
         uses: softprops/action-gh-release@v1

@@ -24,6 +24,27 @@ jobs:
           name: linux-build
           path: target/release/git-issue
 
+  build-for-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: cargo build --release
+
+      - name: uses
+        run: uname -a
+      - name: L
+        run: ls target
+
+      - name: Save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-build
+          path: target/release/git-issue
+
   build-for-windows:
     runs-on: windows-latest
 
@@ -55,13 +76,25 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: linux-build
-          path: git-issue-amd64
 
+      - name: Rename linux artifact
+        run: mv git-issue git-issue-linux-amd64
       - name: Get windows artifact
         uses: actions/download-artifact@v3
         with:
           name: windows-build
-          path: git-issue.exe
+
+      - name: Get macos artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-build
+
+      - name: Rename macos artifact
+        run: mv git-issue git-issue-macos-amd64
+      - name: Get windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-build
 
       - name: Get version
         run: |

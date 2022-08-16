@@ -21,7 +21,7 @@ jobs:
         run: cargo test
 
       - name: Archive release file
-        uses: actions/action-gh-release@v1
+        uses: softprops/action-gh-release@v1
         with:
           files: target/release/git-issue
           generate_release_notes: true

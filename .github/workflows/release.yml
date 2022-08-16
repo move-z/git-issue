@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: windows-build
-          path: target/release/git-issue
+          path: target/release/git-issue.exe
 
   create-release:
     needs:
@@ -57,7 +57,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: windows-build
-          path: git-issue-windows
+          path: git-issue.exe
 
       - name: Get version
         run: |

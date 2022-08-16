@@ -29,16 +29,25 @@ pub fn get_issue_title(id: &str) -> Result<String> {
         }
     }
 
-    dbg!(response);
-    todo!()
+    let issue = response.json::<Issue>()?;
+
+    Ok(issue.fields.summary)
 }
 
 /// The issue data
-#[derive(Deserialize, Debug)]
-struct Issue {}
+#[derive(Deserialize)]
+struct Issue {
+    fields: Fields,
+}
+
+/// The json fields
+#[derive(Deserialize)]
+struct Fields {
+    summary: String,
+}
 
 /// The error data
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 #[allow(non_snake_case)]
 struct Failure {
     errorMessages: Vec<String>,

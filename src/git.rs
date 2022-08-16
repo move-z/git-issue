@@ -3,15 +3,14 @@ const TEMPLATE_FILE: &str = ".git/issue.template";
 use std::{
     fs::{remove_file, OpenOptions},
     io::Write,
-    process::{Command, Output},
+    process::Command,
 };
 
 use anyhow::{bail, Context, Result};
 
 /// Check that we are in a git repository
 pub fn check_is_git() -> Result<bool> {
-    let r = git(&["status"])?.status.success();
-    Ok(r)
+    Ok(git(&["status"])?.ok())
 }
 
 /// Get config option from git
@@ -34,13 +33,10 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
 
     let output = git(&["config", &full_name])?;
 
-    if !output.status.success() {
-        bail!("cannot get property {full_name} from git");
+    match output {
+        GitResult::Err(_) => bail!("cannot get property {full_name} from git"),
+        GitResult::Ok(s) => Ok(s.trim().to_string()),
     }
-
-    let property = String::from_utf8(output.stdout)?.trim().to_string();
-
-    Ok(property)
 }
 
 /// Switch to branch, creating it if necessary
@@ -54,18 +50,15 @@ pub fn create_switch_branch(branch: &str) -> Result<()> {
 /// Create new branch
 fn new_branch(branch: &str) -> Result<()> {
     let output = git(&["branch", branch])?;
-    if !output.status.success() {
-        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    match output {
+        GitResult::Err(e) => bail!(e),
+        GitResult::Ok(_) => Ok(())
     }
-    Ok(())
 }
 
 /// Check if a branch exists
 fn branch_exists(branch: &str) -> Result<bool> {
-    let r = git(&["show-ref", &format!("refs/heads/{branch}")])?
-        .status
-        .success();
-    Ok(r)
+    Ok(git(&["show-ref", &format!("refs/heads/{branch}")])?.ok())
 }
 
 /// Go back to master
@@ -76,10 +69,10 @@ pub fn clear_branch() -> Result<()> {
 /// Switch branch
 fn checkout(branch: &str) -> Result<()> {
     let output = git(&["checkout", branch])?;
-    if !output.status.success() {
-        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    match output {
+        GitResult::Err(e) => bail!(e),
+        GitResult::Ok(_) => Ok(())
     }
-    Ok(())
 }
 
 /// Set the commit template
@@ -92,11 +85,10 @@ pub fn set_template(comment: &str) -> Result<()> {
     write!(&mut f, "{comment}")?;
 
     let output = git(&["config", "commit.template", ".git/issue.template"])?;
-    if !output.status.success() {
-        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    match output {
+        GitResult::Err(e) => bail!(e),
+        GitResult::Ok(_) => Ok(())
     }
-
-    Ok(())
 }
 
 /// Clear the commit template
@@ -104,18 +96,34 @@ pub fn clear_template() -> Result<()> {
     remove_file(TEMPLATE_FILE)?;
 
     let output = git(&["config", "--unset", "commit.template"])?;
-    if !output.status.success() {
-        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    match output {
+        GitResult::Err(e) => bail!(e),
+        GitResult::Ok(_) => Ok(())
     }
-
-    Ok(())
 }
 
 /// Call git
-fn git(params: &[&str]) -> Result<Output> {
+fn git(params: &[&str]) -> Result<GitResult> {
     let r = Command::new("git")
         .args(params)
         .output()
         .with_context(|| format!("cannot launch git {}", params[0]))?;
-    Ok(r)
+    if r.status.success() {
+        Ok(GitResult::Ok(String::from_utf8(r.stdout)?))
+    } else {
+        Ok(GitResult::Err(String::from_utf8(r.stderr)?))
+    }
+}
+
+/// Possible git invocations results
+enum GitResult {
+    Ok(String),
+    Err(String),
+}
+
+/// Helper functions
+impl GitResult {
+    fn ok(&self) -> bool {
+        matches!(self, GitResult::Ok(_))
+    }
 }

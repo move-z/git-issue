@@ -8,7 +8,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  set-version-file:
+  set-version:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,10 +17,12 @@ jobs:
 
       - name: Calculate version
         run: |
-          echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
+          echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%%
+          echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
+          # echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
 
       - name: Set version
-        run: sed 's/^version = ".*"/version = "{{ env.version }}"/' Cargo.toml
+        run: sed -i 's/^version = ".*"/version = "${{ env.version }}"/' Cargo.toml
 
       - name: Save Cargo.toml
         uses: actions/upload-artifact@v3
@@ -30,7 +32,7 @@ jobs:
 
   build-for-linux:
     needs:
-      - set-version-file
+      - set-version
 
     runs-on: ubuntu-latest
 
@@ -52,59 +54,59 @@ jobs:
           name: linux-build
           path: target/release/git-issue
 
-  build-for-macos:
-    needs:
-      - set-version-file
+  # build-for-macos:
+  #   needs:
+  #     - set-version
 
-    runs-on: macos-latest
+  #   runs-on: macos-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Get updated Cargo.toml
-        uses: actions/download-artifact@v3
-        with:
-          name: Cargo.toml
+  #     - name: Get updated Cargo.toml
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: Cargo.toml
 
-      - name: Build
-        run: cargo build --release
+  #     - name: Build
+  #       run: cargo build --release
 
-      - name: Save artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: macos-build
-          path: target/release/git-issue
+  #     - name: Save artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: macos-build
+  #         path: target/release/git-issue
 
-  build-for-windows:
-    needs:
-      - set-version-file
+  # build-for-windows:
+  #   needs:
+  #     - set-version
 
-    runs-on: windows-latest
+  #   runs-on: windows-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Get updated Cargo.toml
-        uses: actions/download-artifact@v3
-        with:
-          name: Cargo.toml
+  #     - name: Get updated Cargo.toml
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: Cargo.toml
 
-      - name: Build
-        run: cargo build --release
+  #     - name: Build
+  #       run: cargo build --release
 
-      - name: Save artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: windows-build
-          path: target/release/git-issue.exe
+  #     - name: Save artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: windows-build
+  #         path: target/release/git-issue.exe
 
   create-release:
     needs:
       - build-for-linux
-      - build-for-macos
-      - build-for-windows
+      # - build-for-macos
+      # - build-for-windows
 
     runs-on: ubuntu-latest
 
@@ -119,27 +121,24 @@ jobs:
 
       - name: Rename linux artifact
         run: mv git-issue git-issue-linux-amd64
-      - name: Get windows artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: windows-build
 
-      - name: Get macos artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: macos-build
+      # - name: Get macos artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: macos-build
 
-      - name: Rename macos artifact
-        run: mv git-issue git-issue-macos-amd64
-      - name: Get windows artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: windows-build
+      # - name: Rename macos artifact
+      #   run: mv git-issue git-issue-macos-amd64
+
+      # - name: Get windows artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: windows-build
 
       - name: Get version
         run: |
-          echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
-      - run: find . -type f
+          # echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV
+          echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
 
       - name: Archive release file
         uses: softprops/action-gh-release@v1

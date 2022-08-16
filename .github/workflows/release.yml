@@ -29,7 +29,7 @@ jobs:
       - name: Archive release file
         uses: softprops/action-gh-release@v1
         with:
-          tagi_name: ${version}
+          tag_name: ${version}
           files: target/release/git-issue
           generate_release_notes: true
 

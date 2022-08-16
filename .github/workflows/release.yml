@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches: [ "9-setup-ci-pipeline" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-for-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: cargo build
+
+      - name: Test
+        run: cargo test
+
+      - name: Archive release file
+        uses: actions/action-gh-release@v1
+        with:
+          files: target/release/git-issue
+          generate_release_notes: true
+
+  # build-for-windows:
+  #   runs-on: windows-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Build
+  #       run: cargo build
+
+  #     - name: Test
+  #       run: cargo test
+
+  #     - name: Archive release file
+  #       uses: actions/action-gh-release@v1
+  #       with:
+  #         files: target/release/git-issue
+  #         generate_release_notes: true

@@ -17,6 +17,7 @@ jobs:
 
       - name: Calculate version
         run: |
+          env
           echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%%
           echo version=0.0.$GITHUB_HEAD_REF | sed s%-setup-ci-pipeline%% >> $GITHUB_ENV
           # echo version=$GITHUB_HEAD_REF | sed s%release/%% >> $GITHUB_ENV

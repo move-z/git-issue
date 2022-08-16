@@ -61,7 +61,7 @@ jobs:
 
       - name: Get version
         run: |
-          echo ::set-output name=version::$(grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml)
+          echo $(echo -n version= ; grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml) >> $GITHUB_RUNNER
 
       - name: Archive release file
         uses: softprops/action-gh-release@v1

@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 use clap::{ArgGroup, Parser};
+use regex::Regex;
 
 use crate::git::*;
 
@@ -34,7 +35,17 @@ fn setup(kind: &str, id: &str, do_branch: bool) -> Result<()> {
         _ => bail!("{kind} is not a valid value for personality\nvalid values: github, jira"),
     };
 
-    let branch = format!("{id}-{}", title.replace(' ', "-"));
+    // partially implemented according to
+    // https://git-scm.com/docs/git-check-ref-format
+    let title = title
+        .replace(char::is_whitespace, "-")
+        .replace('/', "-")
+        .replace(char::is_control, "")
+        .replace(['~', '^', ':', '?', '*', '[', ']', '\\', '@', '{', '}'], "");
+    let title = Regex::new(r"\.\.+")?.replace_all(&title, "");
+    let title = Regex::new(r"--+")?.replace_all(&title, "-");
+
+    let branch = format!("{id}-{}", title);
     let comment = format!("{id} - {title}");
 
     if do_branch {

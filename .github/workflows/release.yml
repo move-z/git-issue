@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build
-        run: cargo build
+        run: cargo build --release
 
       - name: Test
         run: cargo test
@@ -28,7 +28,7 @@ jobs:
       - name: Archive release file
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${env.version}
+          tag_name: ${{ env.version }}
           files: target/release/git-issue
           generate_release_notes: true
 

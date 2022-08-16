@@ -22,14 +22,13 @@ jobs:
         run: cargo test
 
       - name: Get version
-        id: version
         run: |
-          echo "::set-output name=v::$(grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml)"
+          echo $(echo -n version= ; grep -oP '(?<=^version = ")(.+)(?=")' Cargo.toml) >> $GITHUB_ENV
 
       - name: Archive release file
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${version}
+          tag_name: ${env.version}
           files: target/release/git-issue
           generate_release_notes: true
 

@@ -52,7 +52,7 @@ fn new_branch(branch: &str) -> Result<()> {
     let output = git(&["branch", branch])?;
     match output {
         GitResult::Err(e) => bail!(e),
-        GitResult::Ok(_) => Ok(())
+        GitResult::Ok(_) => Ok(()),
     }
 }
 
@@ -61,17 +61,12 @@ fn branch_exists(branch: &str) -> Result<bool> {
     Ok(git(&["show-ref", &format!("refs/heads/{branch}")])?.ok())
 }
 
-/// Go back to master
-pub fn clear_branch() -> Result<()> {
-    checkout("master")
-}
-
 /// Switch branch
-fn checkout(branch: &str) -> Result<()> {
+pub fn checkout(branch: &str) -> Result<()> {
     let output = git(&["checkout", branch])?;
     match output {
         GitResult::Err(e) => bail!(e),
-        GitResult::Ok(_) => Ok(())
+        GitResult::Ok(_) => Ok(()),
     }
 }
 
@@ -87,7 +82,7 @@ pub fn set_template(comment: &str) -> Result<()> {
     let output = git(&["config", "commit.template", ".git/issue.template"])?;
     match output {
         GitResult::Err(e) => bail!(e),
-        GitResult::Ok(_) => Ok(())
+        GitResult::Ok(_) => Ok(()),
     }
 }
 
@@ -98,7 +93,7 @@ pub fn clear_template() -> Result<()> {
     let output = git(&["config", "--unset", "commit.template"])?;
     match output {
         GitResult::Err(e) => bail!(e),
-        GitResult::Ok(_) => Ok(())
+        GitResult::Ok(_) => Ok(()),
     }
 }
 

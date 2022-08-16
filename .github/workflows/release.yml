@@ -64,6 +64,7 @@ jobs:
   create-release:
     needs:
       - build-for-linux
+      - build-for-macos
       - build-for-windows
 
     runs-on: ubuntu-latest

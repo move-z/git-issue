@@ -20,7 +20,7 @@ struct GithubIssue {
 
 impl Issue for GithubIssue {
     fn comment(&self) -> String {
-        let comment = format!("{} - {}", self.id, self.title);
+        let comment = format!("{} - #{}", self.title, self.id);
         comment
     }
 

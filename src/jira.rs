@@ -1,8 +1,32 @@
 use anyhow::{bail, Result};
 use serde::Deserialize;
 
+use crate::Issue;
 use crate::git::get_config_scoped;
-use crate::utils::ask_password;
+use crate::utils::{ask_password, escape_branch_name};
+
+pub fn get(id: &str) -> Result<Box<dyn Issue>> {
+    let title = get_issue_title(id)?;
+    Ok(Box::new(JiraIssue { id: id.to_string(), title }))
+}
+
+struct JiraIssue {
+    id: String,
+    title: String,
+}
+
+impl Issue for JiraIssue {
+    fn comment(&self) -> String {
+        let comment = format!("{} - {}", self.id, self.title);
+        comment
+    }
+
+    fn branch(&self) -> String {
+        let title = escape_branch_name(&self.title);
+        let branch = format!("{}-{}", self.id, title);
+        branch
+    }
+}
 
 /// Fetch the issue from the server
 pub fn get_issue_title(id: &str) -> Result<String> {
@@ -29,14 +53,14 @@ pub fn get_issue_title(id: &str) -> Result<String> {
         }
     }
 
-    let issue = response.json::<Issue>()?;
+    let issue = response.json::<UpstreamContent>()?;
 
     Ok(issue.fields.summary)
 }
 
 /// The issue data
 #[derive(Deserialize)]
-struct Issue {
+struct UpstreamContent {
     fields: Fields,
 }
 

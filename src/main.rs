@@ -1,6 +1,5 @@
 use anyhow::{bail, Result};
 use clap::{ArgGroup, Parser};
-use regex::Regex;
 
 use crate::git::*;
 
@@ -29,24 +28,14 @@ fn main() -> Result<()> {
 
 /// Setup issue <id>
 fn setup(kind: &str, id: &str, do_branch: bool) -> Result<()> {
-    let title = match kind {
-        "github" => github::get_issue_title(id)?,
-        "jira" => jira::get_issue_title(id)?,
+    let handler = match kind {
+        "github" => github::get(id)?,
+        "jira" => jira::get(id)?,
         _ => bail!("{kind} is not a valid value for personality\nvalid values: github, jira"),
     };
 
-    // partially implemented according to
-    // https://git-scm.com/docs/git-check-ref-format
-    let title = title
-        .replace(char::is_whitespace, "-")
-        .replace('/', "-")
-        .replace(char::is_control, "")
-        .replace(['~', '^', ':', '?', '*', '[', ']', '\\', '@', '{', '}'], "");
-    let title = Regex::new(r"\.\.+")?.replace_all(&title, "");
-    let title = Regex::new(r"--+")?.replace_all(&title, "-");
-
-    let branch = format!("{id}-{}", title);
-    let comment = format!("{id} - {title}");
+    let branch = handler.branch();
+    let comment = handler.comment();
 
     if do_branch {
         create_switch_branch(&branch)?;
@@ -64,6 +53,11 @@ fn clear(destination_branch: Option<String>) -> Result<()> {
     checkout(destination_branch.as_deref().unwrap_or(default_branch))?;
     clear_template()?;
     Ok(())
+}
+
+pub trait Issue {
+    fn comment(&self) -> String;
+    fn branch(&self) -> String;
 }
 
 /// Command line arguments

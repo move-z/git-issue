@@ -2,13 +2,37 @@ use anyhow::{bail, Result};
 use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::Deserialize;
 
+use crate::Issue;
 use crate::git::get_config_scoped;
-use crate::utils::ask_password;
+use crate::utils::{ask_password, escape_branch_name};
 
 const GITHUB_URL: &str = "https://api.github.com";
 
+pub fn get(id: &str) -> Result<Box<dyn Issue>> {
+    let title = get_issue_title(id)?;
+    Ok(Box::new(GithubIssue { id: id.to_string(), title }))
+}
+
+struct GithubIssue {
+    id: String,
+    title: String,
+}
+
+impl Issue for GithubIssue {
+    fn comment(&self) -> String {
+        let comment = format!("{} - {}", self.id, self.title);
+        comment
+    }
+
+    fn branch(&self) -> String {
+        let title = escape_branch_name(&self.title);
+        let branch = format!("{}-{}", self.id, title);
+        branch
+    }
+}
+
 /// Fetch the issue from the server
-pub fn get_issue_title(id: &str) -> Result<String> {
+fn get_issue_title(id: &str) -> Result<String> {
     let user = get_config_scoped("user", "github")?;
     let repo = get_config_scoped("repo", "github")?;
     let public = if let Ok(public) = get_config_scoped("public", "github") {
@@ -46,14 +70,14 @@ pub fn get_issue_title(id: &str) -> Result<String> {
         }
     }
 
-    let issue = response.json::<Issue>()?;
+    let issue = response.json::<UpstreamContent>()?;
 
     Ok(issue.title)
 }
 
 /// The issue data
 #[derive(Deserialize)]
-struct Issue {
+struct UpstreamContent {
     title: String,
 }
 

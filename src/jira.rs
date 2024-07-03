@@ -1,13 +1,16 @@
 use anyhow::{bail, Result};
 use serde::Deserialize;
 
-use crate::Issue;
 use crate::git::get_config_scoped;
 use crate::utils::{ask_password, escape_branch_name};
+use crate::Issue;
 
 pub fn get(id: &str) -> Result<Box<dyn Issue>> {
     let title = get_issue_title(id)?;
-    Ok(Box::new(JiraIssue { id: id.to_string(), title }))
+    Ok(Box::new(JiraIssue {
+        id: id.to_string(),
+        title,
+    }))
 }
 
 struct JiraIssue {
@@ -35,7 +38,8 @@ pub fn get_issue_title(id: &str) -> Result<String> {
 
     println!("Fetching info on jira issue {id}");
 
-    let password = ask_password(&format!("user {user} on host {host}"))?;
+    let password = get_config_scoped("token", "jira")
+        .or_else(|_| ask_password(&format!("user {user} on host {host}")))?;
 
     let url = format!("{host}/rest/api/latest/issue/{id}");
     let response = reqwest::blocking::Client::new()

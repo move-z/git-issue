@@ -2,15 +2,18 @@ use anyhow::{bail, Result};
 use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::Deserialize;
 
-use crate::Issue;
 use crate::git::get_config_scoped;
 use crate::utils::{ask_password, escape_branch_name};
+use crate::Issue;
 
 const GITHUB_URL: &str = "https://api.github.com";
 
 pub fn get(id: &str) -> Result<Box<dyn Issue>> {
     let title = get_issue_title(id)?;
-    Ok(Box::new(GithubIssue { id: id.to_string(), title }))
+    Ok(Box::new(GithubIssue {
+        id: id.to_string(),
+        title,
+    }))
 }
 
 struct GithubIssue {

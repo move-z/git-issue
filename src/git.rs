@@ -41,6 +41,11 @@ fn get_config_internal(name: &str, scope: Option<&str>) -> Result<String> {
 
 /// Switch to branch, creating it if necessary
 pub fn create_switch_branch(branch: &str) -> Result<()> {
+    let branch = match get_config("branchPrefix") {
+        Ok(p) => &format!("{p}/{branch}"),
+        Err(_) => branch,
+    };
+
     if !branch_exists(branch)? {
         new_branch(branch)?;
     }

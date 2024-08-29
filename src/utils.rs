@@ -16,6 +16,7 @@ pub fn escape_branch_name(input: &str) -> String {
     let res = Regex::new(r"[\p{Control},~^:?*\[\]\\@{}]")
         .unwrap()
         .replace_all(&res, "");
+    let res = Regex::new(r"'").unwrap().replace_all(&res, "-");
     let res = Regex::new(r"\.\.+").unwrap().replace_all(&res, ".");
     let res = Regex::new(r"--+").unwrap().replace_all(&res, "-");
     res.into_owned()
